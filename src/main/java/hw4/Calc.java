@@ -110,12 +110,21 @@ public final class Calc {
   }
   
   private static void evalOperator(String command, LinkedStack<Integer> stack) {
+    if (stack.empty()) {
+      System.out.println("ERROR: empty stack");
+      return;
+    }
     int op2 = stack.top();
     if ("/".equals(command) && op2 == 0) {
       System.out.println("ERROR: cannot divide by zero");
       return;
     }
     stack.pop();
+    if (stack.empty()) {
+      System.out.println("ERROR: operator need 2 operands but 1 is given");
+      stack.push(op2);
+      return;
+    }
     int op1 = stack.top();
     stack.pop();
   

@@ -16,24 +16,29 @@ public final class Calc {
     LinkedStack<Integer> stack = new LinkedStack<>();
     Scanner inputScanner = new Scanner(System.in);
     String input;
-    boolean end = false;
+    boolean cont = true;
     
-    while (!end) {
+    while (cont) {
       input = inputScanner.nextLine();
       Scanner commandScanner = new Scanner(input);
-      while (commandScanner.hasNext() && !end) {
+      while (commandScanner.hasNext() && cont) {
         String command = commandScanner.next();
-        if (!validToken(command)) {
-          System.out.println("ERROR: bad token");
-        } else if (validSpecialCommand(command)) {
-          end = evalSpecialCommand(command, stack);
-        } else if (validOperator(command)) {
-          evalOperator(command, stack);
-        } else if (validInt(command)) {
-          evalInt(command, stack);
-        }
+        cont = processCommand(command, stack);
       }
     }
+  }
+  
+  private static boolean processCommand(String command, LinkedStack<Integer> stack) {
+    if (!validToken(command)) {
+      System.out.println("ERROR: bad token");
+    } else if (validSpecialCommand(command)) {
+      return evalSpecialCommand(command, stack);
+    } else if (validOperator(command) && validStack(command, stack)) {
+      evalOperator(command, stack);
+    } else if (validInt(command)) {
+      evalInt(command, stack);
+    }
+    return true;
   }
   
   private static boolean validToken(String command) {
@@ -91,10 +96,10 @@ public final class Calc {
         }
         break;
       case "!":
-        return true;
+        return false;
       default:
     }
-    return false;
+    return true;
   }
   
   private static boolean validOperator(String command) {
@@ -109,25 +114,33 @@ public final class Calc {
     return valid;
   }
   
-  private static void evalOperator(String command, LinkedStack<Integer> stack) {
+  private static boolean validStack(String command, LinkedStack<Integer> stack) {
     if (stack.empty()) {
       System.out.println("ERROR: empty stack");
-      return;
+      return false;
     }
     int op2 = stack.top();
     if ("/".equals(command) && op2 == 0) {
       System.out.println("ERROR: cannot divide by zero");
-      return;
+      return false;
     }
     stack.pop();
     if (stack.empty()) {
       System.out.println("ERROR: operator need 2 operands but 1 is given");
       stack.push(op2);
-      return;
+      return false;
     }
+    stack.push(op2);
+    
+    return true;
+  }
+  
+  private static void evalOperator(String command, LinkedStack<Integer> stack) {
+    int op2 = stack.top();
+    stack.pop();
     int op1 = stack.top();
     stack.pop();
-  
+    
     if ("+".equals(command)) {
       stack.push(op1 + op2);
     } else if ("-".equals(command)) {

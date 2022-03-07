@@ -1,5 +1,6 @@
 package hw4;
 
+import exceptions.EmptyException;
 import java.util.Scanner;
 
 /**
@@ -17,91 +18,26 @@ public final class Calc {
     String input;
     boolean end = false;
     
-    while (true) {
+    while (!end) {
       input = inputScanner.nextLine();
       Scanner commandScanner = new Scanner(input);
-      while (commandScanner.hasNext()) {
+      while (commandScanner.hasNext() && !end) {
         String command = commandScanner.next();
-        if ("!".equals(command)) {
-          end = true;
-          break;
-        }
-        if (validOperator(command)) {
-          evalOperator(command, stack);
-          continue;
-        }
-        if (validSpecialCommand(command)) {
-          evalSpecialCommand(command, stack);
-          continue;
-        }
-        if (!validInt(command)) {
+        if (!validToken(command)) {
           System.out.println("ERROR: bad token");
-          continue;
+        } else if (validSpecialCommand(command)) {
+          end = evalSpecialCommand(command, stack);
+        } else if (validOperator(command)) {
+          evalOperator(command, stack);
+        } else if (validInt(command)) {
+          evalInt(command, stack);
         }
-        stack.push(Integer.parseInt(command));
       }
-      
-      if (end) {
-        break;
-      }
-      
     }
   }
   
-  private static void evalSpecialCommand(String command, LinkedStack<Integer> stack) {
-    switch (command) {
-      case "?":
-        System.out.println(stack.toString());
-        break;
-      case ".":
-        System.out.println(stack.top());
-        break;
-      default:
-        break;
-    }
-  }
-  
-  private static boolean validSpecialCommand(String command) {
-    String[] specialCommands = {"?", "."};
-    boolean valid = false;
-    for (int i = 0; i < 2; i++) {
-      if (command.equals(specialCommands[i])) {
-        valid = true;
-        break;
-      }
-    }
-    return valid;
-  }
-  
-  private static boolean validOperator(String command) {
-    String[] operators = {"+", "-", "*", "/", "%"};
-    boolean valid = false;
-    for (int i = 0; i < 5; i++) {
-      if (command.equals(operators[i])) {
-        valid = true;
-        break;
-      }
-    }
-    return valid;
-  }
-  
-  private static void evalOperator(String command, LinkedStack<Integer> stack) {
-    int op2 = stack.top();
-    stack.pop();
-    int op1 = stack.top();
-    stack.pop();
-  
-    if ("+".equals(command)) {
-      stack.push(op1 + op2);
-    } else if ("-".equals(command)) {
-      stack.push(op1 - op2);
-    } else if ("*".equals(command)) {
-      stack.push(op1 * op2);
-    } else if ("/".equals(command)) {
-      stack.push(op1 / op2);
-    } else if ("%".equals(command)) {
-      stack.push(op1 % op2);
-    }
+  private static boolean validToken(String command) {
+    return validInt(command) || validOperator(command) || validSpecialCommand(command);
   }
   
   private static boolean validInt(String command) {
@@ -123,5 +59,76 @@ public final class Calc {
       }
     }
     return true;
+  }
+  
+  private static void evalInt(String command, LinkedStack<Integer> stack) {
+    stack.push(Integer.parseInt(command));
+  }
+  
+  private static boolean validSpecialCommand(String command) {
+    String[] specialCommands = {"?", ".", "!"};
+    boolean valid = false;
+    for (int i = 0; i < 3; i++) {
+      if (command.equals(specialCommands[i])) {
+        valid = true;
+        break;
+      }
+    }
+    return valid;
+  }
+  
+  private static boolean evalSpecialCommand(String command, LinkedStack<Integer> stack) {
+    switch (command) {
+      case "?":
+        System.out.println(stack.toString());
+        break;
+      case ".":
+        try {
+          int top = stack.top();
+          System.out.println(top);
+        } catch (EmptyException ex) {
+          System.out.println("ERROR: empty stack");
+        }
+        break;
+      case "!":
+        return true;
+      default:
+    }
+    return false;
+  }
+  
+  private static boolean validOperator(String command) {
+    String[] operators = {"+", "-", "*", "/", "%"};
+    boolean valid = false;
+    for (int i = 0; i < 5; i++) {
+      if (command.equals(operators[i])) {
+        valid = true;
+        break;
+      }
+    }
+    return valid;
+  }
+  
+  private static void evalOperator(String command, LinkedStack<Integer> stack) {
+    int op2 = stack.top();
+    if ("/".equals(command) && op2 == 0) {
+      System.out.println("ERROR: cannot divide by zero");
+      return;
+    }
+    stack.pop();
+    int op1 = stack.top();
+    stack.pop();
+  
+    if ("+".equals(command)) {
+      stack.push(op1 + op2);
+    } else if ("-".equals(command)) {
+      stack.push(op1 - op2);
+    } else if ("*".equals(command)) {
+      stack.push(op1 * op2);
+    } else if ("/".equals(command)) {
+      stack.push(op1 / op2);
+    } else if ("%".equals(command)) {
+      stack.push(op1 % op2);
+    }
   }
 }

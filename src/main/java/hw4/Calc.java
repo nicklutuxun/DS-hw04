@@ -120,7 +120,7 @@ public final class Calc {
       return false;
     }
     int op2 = stack.top();
-    if ("/".equals(command) && op2 == 0) {
+    if (("/".equals(command) || "%".equals(command)) && op2 == 0) {
       System.out.println("ERROR: cannot divide by zero");
       return false;
     }
